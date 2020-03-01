@@ -3,6 +3,7 @@ package com.mallotec.reb.widget;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.os.Build;
 import android.text.Layout;
 import android.text.StaticLayout;
 import android.util.AttributeSet;
@@ -24,6 +25,8 @@ import androidx.appcompat.widget.AppCompatTextView;
  * 2.计算好BaseLine，详情参考 https://www.cnblogs.com/tianzhijiexian/p/4297664.html
  */
 public class PrinterTextView extends AppCompatTextView {
+
+    private final String TAG = "PrinterTextView";
 
     /**
      * 打印机动画回调
@@ -60,7 +63,11 @@ public class PrinterTextView extends AppCompatTextView {
      */
     private boolean stringSetDone = false;
 
-    private final String TAG = "PrinterTextView";
+    /**
+     * 用于支持多行文本
+     */
+    private StaticLayout staticLayout;
+    private StaticLayout allContentStaticLayout = null;
 
     public PrinterTextView(Context context) {
         super(context);
@@ -112,11 +119,14 @@ public class PrinterTextView extends AppCompatTextView {
         // 绘制文字
 //        canvas.drawText(text, getPaddingStart(), getBaseline(), getPaint());
         // 用于支持多行文本
-        StaticLayout staticLayout = new StaticLayout(text, getPaint(), canvas.getWidth(), Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
-        // 修复高度不变导致内容无法显示完全的问题
-        setHeight(staticLayout.getHeight());
+        if (allContentStaticLayout != null) {
+            staticLayout = allContentStaticLayout;
+        } else {
+            staticLayout = new StaticLayout(text, getPaint(), canvas.getWidth(), Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
+        }
         staticLayout.draw(canvas);
         Log.i(TAG, "当前行：" + staticLayout.getLineCount());
+        Log.i(TAG, "当前宽度：" + canvas.getWidth());
         Log.i(TAG, "当前高度：" + staticLayout.getHeight());
     }
 
@@ -140,6 +150,10 @@ public class PrinterTextView extends AppCompatTextView {
                         if (textAnimationListener != null) {
                             textAnimationListener.finish();
                         }
+                    }
+                    if (staticLayout != null) {
+                        // 修复高度不变导致内容无法显示完全的问题
+                        setHeight(staticLayout.getHeight());
                     }
                     invalidate();
                 }
@@ -180,7 +194,11 @@ public class PrinterTextView extends AppCompatTextView {
     public void showAllText() {
         if (stopPrintAnimation()) {
             textBuffer.delete(0, textBuffer.length());
-            textBuffer.append(textArray);
+            if (staticLayout != null) {
+                // 修复高度不变导致内容无法显示完全的问题
+                allContentStaticLayout = new StaticLayout(textArray, getPaint(), getWidth(), Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
+                setHeight(allContentStaticLayout.getHeight());
+            }
             invalidate();
         }
     }
