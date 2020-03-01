@@ -148,16 +148,16 @@ public class PrinterTextView extends AppCompatTextView {
      * @return 停止动画结果
      */
     public boolean stopPrintAnimation() {
+        if (printerAnimator == null) {
+            return false;
+        }
         // 如果动画不在运行中说明已经结束了
         if (!printerAnimator.isRunning()) {
             return true;
         }
-        if (printerAnimator != null) {
-            printerAnimator.end();
-            stringSetDone = false;
-            return true;
-        }
-        return false;
+        printerAnimator.end();
+        stringSetDone = false;
+        return true;
     }
 
     /**
