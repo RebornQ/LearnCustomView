@@ -19,9 +19,7 @@ public class MainActivity extends AppCompatActivity {
         final PrinterTextView printerTextView = findViewById(R.id.textView);
         printerTextView.setTextAnimationListener(new PrinterTextView.TextAnimationListener() {
             @Override
-            public void finish() {
-                Toast.makeText(MainActivity.this, "AnimationFinished", Toast.LENGTH_LONG).show();
-            }
+            public void finish() { Toast.makeText(MainActivity.this, "AnimationFinished", Toast.LENGTH_LONG).show(); }
         });
         printerTextView.startPrintAnimation();
 

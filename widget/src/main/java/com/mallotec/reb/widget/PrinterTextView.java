@@ -3,6 +3,8 @@ package com.mallotec.reb.widget;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.text.Layout;
+import android.text.StaticLayout;
 import android.util.AttributeSet;
 import android.view.animation.LinearInterpolator;
 
@@ -54,6 +56,8 @@ public class PrinterTextView extends AppCompatTextView {
 
     private boolean stringSetDone = false;
 
+    private StaticLayout staticLayout;
+
     public PrinterTextView(Context context) {
         super(context);
         textBuffer = new StringBuffer();
@@ -102,7 +106,9 @@ public class PrinterTextView extends AppCompatTextView {
      */
     private void draw(Canvas canvas, String text) {
         // 绘制文字
-        canvas.drawText(text, getPaddingStart(), getBaseline(), getPaint());
+//        canvas.drawText(text, getPaddingStart(), getBaseline(), getPaint());
+        staticLayout = new StaticLayout(text, getPaint(), canvas.getWidth(), Layout.Alignment.ALIGN_NORMAL, 1.0f,0.0f, false);
+        staticLayout.draw(canvas);
     }
 
     private void initPrintAnimation(int duration) {
@@ -128,6 +134,10 @@ public class PrinterTextView extends AppCompatTextView {
                     }
                     // 重新设置宽度
                     setWidth(Math.round(getPaint().measureText(textBuffer.toString())));
+                    if (staticLayout != null) {
+                        // 修复高度不变导致内容无法显示完全的问题
+                        setHeight(staticLayout.getHeight());
+                    }
                     invalidate();
                 }
             }
