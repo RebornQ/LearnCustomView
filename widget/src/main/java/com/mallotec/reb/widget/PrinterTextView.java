@@ -3,7 +3,6 @@ package com.mallotec.reb.widget;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.animation.LinearInterpolator;
 
@@ -135,13 +134,21 @@ public class PrinterTextView extends AppCompatTextView {
         });
     }
 
+    /**
+     * 开始播放动画
+     */
     public void startPrintAnimation() {
         if (printerAnimator != null) {
             printerAnimator.start();
         }
     }
 
+    /**
+     * 结束动画
+     * @return 停止动画结果
+     */
     public boolean stopPrintAnimation() {
+        // 如果动画不在运行中说明已经结束了
         if (!printerAnimator.isRunning()) {
             return true;
         }
@@ -153,10 +160,14 @@ public class PrinterTextView extends AppCompatTextView {
         return false;
     }
 
+    /**
+     * 显示全文
+     */
     public void showAllText() {
         if (stopPrintAnimation()) {
             textBuffer.delete(0, textBuffer.length());
             textBuffer.append(textArray);
+            // 重新计算宽度
             setWidth(Math.round(getPaint().measureText(textBuffer.toString())));
             invalidate();
         }
