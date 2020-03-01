@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
         btStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                printerTextView.stopPrintAnimation();
+                printerTextView.showAllText();
             }
         });
         Button btStart = findViewById(R.id.bt_start);

@@ -11,16 +11,15 @@ import androidx.appcompat.widget.AppCompatTextView;
 
 /**
  * Created by reborn on 2020/2/29.
- *
+ * <p>
  * 打印机效果 TextView
- *
+ * <p>
  * 思路：
  * 从外部拿到字符串后，从0位置开始拿出字符串的字符，用线程安全的StringBuffer存每一次拿出的字符，然后在动画更新的同时重绘TextView
- *
+ * <p>
  * 绘制思路：
  * 1.计算好画布大小
  * 2.计算好BaseLine，详情参考 https://www.cnblogs.com/tianzhijiexian/p/4297664.html
- *
  */
 public class PrinterTextView extends AppCompatTextView {
 
@@ -98,8 +97,9 @@ public class PrinterTextView extends AppCompatTextView {
 
     /**
      * 绘制文字
+     *
      * @param canvas 画布
-     * @param text 要绘制的文字
+     * @param text   要绘制的文字
      */
     private void draw(Canvas canvas, String text) {
         // 计算 View 实际绘制范围（内容边界）
@@ -152,10 +152,24 @@ public class PrinterTextView extends AppCompatTextView {
         }
     }
 
-    public void stopPrintAnimation() {
+    public boolean stopPrintAnimation() {
+        if (!printerAnimator.isRunning()) {
+            return true;
+        }
         if (printerAnimator != null) {
             printerAnimator.end();
             stringSetDone = false;
+            return true;
+        }
+        return false;
+    }
+
+    public void showAllText() {
+        if (stopPrintAnimation()) {
+            textBuffer.delete(0, textBuffer.length());
+            textBuffer.append(textArray);
+            setWidth(Math.round(getPaint().measureText(textBuffer.toString())));
+            invalidate();
         }
     }
 
