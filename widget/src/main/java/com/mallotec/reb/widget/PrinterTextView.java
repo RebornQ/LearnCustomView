@@ -3,7 +3,6 @@ package com.mallotec.reb.widget;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
-import android.os.Build;
 import android.text.Layout;
 import android.text.StaticLayout;
 import android.util.AttributeSet;
@@ -23,6 +22,9 @@ import androidx.appcompat.widget.AppCompatTextView;
  * 绘制思路：
  * 1.计算好画布大小
  * 2.计算好BaseLine，详情参考 https://www.cnblogs.com/tianzhijiexian/p/4297664.html
+ * 3.在BaseLine开始绘制文字
+ *
+ * TODO：支持padding等属性，目前建议与ScrollView搭配使用
  */
 public class PrinterTextView extends AppCompatTextView {
 

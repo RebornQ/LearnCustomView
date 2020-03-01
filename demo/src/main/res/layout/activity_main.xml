@@ -19,7 +19,7 @@
     <!--    </com.mallotec.reb.widget.CircleView>-->
 
     <View
-        android:id="@+id/line"
+        android:id="@+id/line_center"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="@color/colorAccent"
