@@ -17,12 +17,12 @@ import androidx.appcompat.widget.AppCompatTextView;
  * 打印机效果 TextView
  * <p>
  * 思路：
- * 从外部拿到字符串后，从0位置开始拿出字符串的字符，用线程安全的StringBuffer存每一次拿出的字符，然后在动画更新的同时重绘TextView
+ * 从外部拿到字符串后，从0位置开始逐个拿出字符串的字符，用线程安全的StringBuffer存每一次拿出的字符，然后在动画更新的同时重绘TextView
  * <p>
  * 绘制思路：
  * 1.计算好画布大小
- * 2.计算好BaseLine，详情参考 https://www.cnblogs.com/tianzhijiexian/p/4297664.html
- * 3.在BaseLine开始绘制文字
+ * 2.计算好 BaseLine，若继承的是 TextView 而不是 View 则可直接通过 getBaseLine() 获得。详情参考 https://www.cnblogs.com/tianzhijiexian/p/4297664.html
+ * 3.在 BaseLine 位置开始绘制文字
  *
  * TODO：支持padding等属性，目前建议与ScrollView搭配使用
  */
@@ -63,7 +63,7 @@ public class PrinterTextView extends AppCompatTextView {
     /**
      * 字符串是否初始化完毕
      */
-    private boolean stringSetDone = false;
+    private boolean isStringInitialized = false;
 
     /**
      * 用于支持多行文本
@@ -133,7 +133,7 @@ public class PrinterTextView extends AppCompatTextView {
     }
 
     private void initPrintAnimation(int duration) {
-        stringSetDone = true;
+        isStringInitialized = true;
         printerAnimator = ValueAnimator.ofInt(0, textCount - 1);
         // 设置动画总时间
         printerAnimator.setDuration(textCount * duration);
@@ -186,7 +186,7 @@ public class PrinterTextView extends AppCompatTextView {
             return true;
         }
         printerAnimator.end();
-        stringSetDone = false;
+        isStringInitialized = false;
         return true;
     }
 
@@ -208,8 +208,8 @@ public class PrinterTextView extends AppCompatTextView {
     @Override
     protected void onTextChanged(CharSequence text, int start, int lengthBefore, int lengthAfter) {
         super.onTextChanged(text, start, lengthBefore, lengthAfter);
-        // 对象还没创建时已经进来，可做相应初始化
-        if (!stringSetDone) {
+        // 对象还没创建时已经进来，可做相应初始化，一旦动画开始则即使TextView的text有变化也不可再缓存
+        if (!isStringInitialized) {
             textCount = lengthAfter;
             textArray = text;
         }
