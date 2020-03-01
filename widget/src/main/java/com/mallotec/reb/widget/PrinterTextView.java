@@ -123,6 +123,7 @@ public class PrinterTextView extends AppCompatTextView {
         // 用于支持多行文本
         if (allContentStaticLayout != null) {
             staticLayout = allContentStaticLayout;
+            allContentStaticLayout = null;
         } else {
             staticLayout = new StaticLayout(text, getPaint(), canvas.getWidth(), Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
         }
@@ -187,6 +188,7 @@ public class PrinterTextView extends AppCompatTextView {
         }
         printerAnimator.end();
         isStringInitialized = false;
+        textBuffer.delete(0, textBuffer.length());
         return true;
     }
 
@@ -195,7 +197,6 @@ public class PrinterTextView extends AppCompatTextView {
      */
     public void showAllText() {
         if (stopPrintAnimation()) {
-            textBuffer.delete(0, textBuffer.length());
             if (staticLayout != null) {
                 // 修复高度不变导致内容无法显示完全的问题
                 allContentStaticLayout = new StaticLayout(textArray, getPaint(), getWidth(), Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
