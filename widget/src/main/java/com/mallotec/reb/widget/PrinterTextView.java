@@ -102,19 +102,8 @@ public class PrinterTextView extends AppCompatTextView {
      * @param text   要绘制的文字
      */
     private void draw(Canvas canvas, String text) {
-        // 计算 View 实际绘制范围（内容边界）
-//        int left = getPaddingStart();
-        int top = getPaddingTop();
-//        int right = getWidth() - getPaddingEnd();
-        int bottom = getHeight() - getPaddingBottom();
-        // 计算 View 内容边界的中心纵坐标
-        int viewCenterY = (bottom + top) / 2;   // (bottom - top) / 2 + top
-        // 获取字体测量
-        Paint.FontMetricsInt fontMetrics = getPaint().getFontMetricsInt();
-        // 计算 baseLine 的位置 (BaseLine = View 实际绘制边界的高度 - FontMetrics的 Top 和 Bottom)
-        int baseLine = viewCenterY - (fontMetrics.top + fontMetrics.bottom) / 2;
         // 绘制文字
-        canvas.drawText(text, getPaddingStart(), baseLine, getPaint());
+        canvas.drawText(text, getPaddingStart(), getBaseline(), getPaint());
     }
 
     private void initPrintAnimation(int duration) {
