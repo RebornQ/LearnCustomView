@@ -5,3 +5,8 @@
 大部分源码文件头都会有我原来的最初版的思路，后面的思路变动大的话，会看情况更新。
 
 （本仓库会持续更新～）
+
+## 打字机TextView（逐字显示效果）
+搭配 ScrollView 使用的效果如下:
+
+![PrinterTextVie](media/PrinterTextView.gif)

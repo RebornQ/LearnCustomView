@@ -37,7 +37,7 @@ public class PrinterTextView extends AppCompatTextView {
     /**
      * 每个字出现的间隔
      */
-    private int duration = 200;
+    private int duration = 100;
     /**
      * 针对属性的值进行动画 ，不会对UI造成改变
      */
