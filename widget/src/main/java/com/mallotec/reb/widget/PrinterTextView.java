@@ -3,8 +3,6 @@ package com.mallotec.reb.widget;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
-import android.text.DynamicLayout;
-import android.text.Layout;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.animation.LinearInterpolator;
@@ -19,12 +17,14 @@ import androidx.appcompat.widget.AppCompatTextView;
  * 思路：
  * 从外部拿到字符串后，从0位置开始逐个拿出字符串的字符，用线程安全的StringBuffer存每一次拿出的字符，然后在动画更新的同时重绘TextView
  * <p>
- * 绘制思路：
+ * 初始绘制思路：
  * 1.计算好画布大小
  * 2.计算好 BaseLine，若继承的是 TextView 而不是 View 则可直接通过 getBaseLine() 获得。详情参考 https://www.cnblogs.com/tianzhijiexian/p/4297664.html
  * 3.在 BaseLine 位置开始绘制文字
  *
- * TODO：支持padding等属性，目前建议与ScrollView搭配使用
+ * 改进后思路：
+ * 由于直接继承 TextView，因此我们可以直接使用 TextView 的 setText() 方法实现，不需要自己实现绘制文字，同时也随之支持了 Padding 等属性。
+ *
  */
 public class PrinterTextView extends AppCompatTextView {
 
@@ -65,37 +65,28 @@ public class PrinterTextView extends AppCompatTextView {
      */
     private boolean isStringInitialized = false;
 
-    /**
-     * 用于支持多行文本
-     */
-    private DynamicLayout layout;
-    private DynamicLayout allContentLayout = null;
-
     public PrinterTextView(Context context) {
         super(context);
         textBuffer = new StringBuffer();
         initPrintAnimation(duration);
+        // 避免在 xml 设置了 android:text 属性导致刚开始的时候会显示出所有内容
         setText("");
-        // 清空 TextView 后必须重新设置预设宽度，否则不执行 onDraw()
-        setWidth(Math.round(getPaint().measureText(textArray.toString())));
     }
 
     public PrinterTextView(Context context, AttributeSet attrs) {
         super(context, attrs);
         textBuffer = new StringBuffer();
         initPrintAnimation(duration);
+        // 避免在 xml 设置了 android:text 属性导致刚开始的时候会显示出所有内容
         setText("");
-        // 清空 TextView 后必须重新设置预设宽度，否则不执行 onDraw()
-        setWidth(Math.round(getPaint().measureText(textArray.toString())));
     }
 
     public PrinterTextView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         textBuffer = new StringBuffer();
         initPrintAnimation(duration);
+        // 避免在 xml 设置了 android:text 属性导致刚开始的时候会显示出所有内容
         setText("");
-        // 清空 TextView 后必须重新设置预设宽度，否则不执行 onDraw()
-        setWidth(Math.round(getPaint().measureText(textArray.toString())));
     }
 
     public void setTextAnimationListener(TextAnimationListener textAnimationListener) {
@@ -105,39 +96,11 @@ public class PrinterTextView extends AppCompatTextView {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if (textBuffer != null) {
-            // 字符串缓冲区必须被初始化后才能进行绘制
-            drawText(canvas, textBuffer.toString());
-        }
-    }
-
-    /**
-     * 绘制文字
-     *
-     * @param canvas 画布
-     * @param text   要绘制的文字
-     */
-    private void drawText(Canvas canvas, String text) {
-        // 绘制文字
-//        canvas.drawText(text, getPaddingStart(), getBaseline(), getPaint());
-        // 用于支持多行文本
-        if (allContentLayout != null) {
-            layout = allContentLayout;
-            allContentLayout = null;
-        } else {
-            layout = new DynamicLayout(text, getPaint(), canvas.getWidth(), Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
-        }
-        layout.draw(canvas);
-        Log.i(TAG, "当前行：" + layout.getLineCount());
-        Log.i(TAG, "当前宽度：" + canvas.getWidth());
-        Log.i(TAG, "当前高度：" + layout.getHeight());
     }
 
     private void initPrintAnimation(int duration) {
         isStringInitialized = true;
-        printerAnimator = ValueAnimator.ofInt(0, textCount - 1);
-        // 设置动画总时间
-        printerAnimator.setDuration(textCount * duration);
+        printerAnimator = ValueAnimator.ofInt();
         // 设置以常量速率改变的插值器
         printerAnimator.setInterpolator(new LinearInterpolator());
         // 设置值更新监听器
@@ -149,16 +112,16 @@ public class PrinterTextView extends AppCompatTextView {
                 if (currentIndex != index) {
                     textBuffer.append(textArray.charAt(index));
                     currentIndex = index;
+
+                    setText(textBuffer.toString());
+
                     if (index == textCount - 1) {
                         if (textAnimationListener != null) {
                             textAnimationListener.finish();
                         }
+                        // 动画结束后要回收和重置index
+                        recycle();
                     }
-                    if (layout != null) {
-                        // 修复高度不变导致内容无法显示完全的问题
-                        setHeight(layout.getHeight());
-                    }
-                    invalidate();
                 }
                 Log.i(TAG, "当前index：" + index);
             }
@@ -170,8 +133,25 @@ public class PrinterTextView extends AppCompatTextView {
      */
     public void startPrintAnimation() {
         if (printerAnimator != null) {
+            isStringInitialized = true;
+            // 因为每次开始都有可能是不同的字串，所以有变动的初始化放在开始动画的地方而不是初始化动画的地方
+            // 设置动画阈值
+            printerAnimator.setIntValues(0, textCount - 1);
+            // 设置动画总时间
+            printerAnimator.setDuration(textCount * duration);
             printerAnimator.start();
         }
+    }
+
+    /**
+     * 重置和回收
+     */
+    private void recycle() {
+        isStringInitialized = false;
+        textBuffer.delete(0, textBuffer.length());
+        currentIndex = -1;
+        // 不 cancel 动画会出错，详情自己注释后尝试同一个 View 实例先后播放两个不同的字串即可知晓
+        printerAnimator.cancel();
     }
 
     /**
@@ -187,8 +167,8 @@ public class PrinterTextView extends AppCompatTextView {
             return true;
         }
         printerAnimator.end();
-        isStringInitialized = false;
-        textBuffer.delete(0, textBuffer.length());
+        // 动画结束后要回收和重置index
+        recycle();
         return true;
     }
 
@@ -197,12 +177,7 @@ public class PrinterTextView extends AppCompatTextView {
      */
     public void showAllText() {
         if (stopPrintAnimation()) {
-            if (layout != null) {
-                // 修复高度不变导致内容无法显示完全的问题
-                allContentLayout = new DynamicLayout(textArray, getPaint(), getWidth(), Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
-                setHeight(allContentLayout.getHeight());
-            }
-            invalidate();
+            setText(textArray);
         }
     }
 

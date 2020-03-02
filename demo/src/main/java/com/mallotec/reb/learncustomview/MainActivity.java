@@ -33,7 +33,9 @@ public class MainActivity extends AppCompatActivity {
         Button btStart = findViewById(R.id.bt_start);
         btStart.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) { printerTextView.startPrintAnimation();
+            public void onClick(View v) {
+                printerTextView.setText("123456789");
+                printerTextView.startPrintAnimation();
             }
         });
     }
